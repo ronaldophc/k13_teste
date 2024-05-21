@@ -4,39 +4,29 @@ require './config.php';
 require './vendor/autoload.php';
 
 use App\Controllers\ContatoController;
+use App\Controllers\EnderecoController;
+use App\Utils\Util;
 
-$controller = new ContatoController();
+$Contactcontroller = new ContatoController();
+$Addresscontroller = new EnderecoController();
+
 
 $uri = str_replace('/k13_teste', '', $_SERVER['REQUEST_URI']);
-print_r($uri);
-print_r('<br>');
-// Realiza o roteamento com base na URI
 if ($uri === '/') {
-    $controller->index();
+    $Contactcontroller->index();
+} elseif ($uri === '/search') {
+    $Contactcontroller->search();
 } elseif ($uri === '/contato/create') {
-    $controller->create();
-} elseif ($uri === '/contato/store') {
-    $controller->store();
-} elseif ($uri === '/contato/edit') {
-    $controller->edit();
-} elseif ($uri === '/contato/update') {
-    $controller->update();
+    $Contactcontroller->create();
+} elseif ($uri === '/contato/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $Contactcontroller->save();
 } elseif ($uri === '/endereco/create') {
-    $controller->createEndereco();
-} elseif ($uri === '/endereco/store') {
-    $controller->storeEndereco();
-} elseif ($uri === '/endereco/edit') {
-    $controller->editEndereco();
-} elseif ($uri === '/endereco/update') {
-    $controller->updateEndereco();
-} elseif ($uri === '/telefone/create') {
-    $controller->createTelefone();
-} elseif ($uri === '/telefone/store') {
-    $controller->storeTelefone();
-} elseif ($uri === '/telefone/edit') {
-    $controller->editTelefone();
-} elseif ($uri === '/telefone/update') {
-    $controller->updateTelefone();
+    $Addresscontroller->createEndereco();
+} elseif ($uri === '/endereco/store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $Addresscontroller->save();
+} elseif (Util::startsWith($uri, '/endereco/get')) {
+    $contatoId = $_GET['contato_id'];
+    $Addresscontroller->getAddressByContact($contatoId);
 } else {
     header("HTTP/1.0 404 Not Found");
     echo '404 Not Found';

@@ -11,13 +11,11 @@ class Contato
     public $cpf;
     public $email;
     public $data_nascimento;
-    protected $table = 'contatos';
     protected $primaryKey = 'id';
 
     public static function all()
     {
-        $pdo = getDbConnection();
-        $stmt = $pdo->query("SELECT * FROM contatos");
+        $stmt = getDbConnection()->query("SELECT * FROM contatos");
         $contatos = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $contato = new Contato();
@@ -30,11 +28,10 @@ class Contato
         }
         return $contatos;
     }
+
     public static function find($id)
     {
-        $pdo = getDbConnection();
-        $stmt = $pdo->prepare("SELECT * FROM contatos WHERE id = ?");
-        $stmt->execute([$id]);
+        $stmt = getDbConnection()->prepare("SELECT * FROM contatos WHERE id = $id");
         $contatoData = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($contatoData) {
             $contato = new Contato();
@@ -45,31 +42,51 @@ class Contato
             $contato->data_nascimento = $contatoData['data_nascimento'];
             return $contato;
         } else {
-            return null; // Retorna null se o contato não for encontrado
+            return null;
         }
     }
 
     public function save()
     {
         $stmt = getDbConnection()->prepare('INSERT INTO contatos (nome_completo, cpf, email, data_nascimento) VALUES (:nome_completo, :cpf, :email, :data_nascimento)');
-
-        // Atribuir os valores dos parâmetros da consulta
         $stmt->bindParam(':nome_completo', $_POST['nome_completo']);
         $stmt->bindParam(':cpf', $_POST['cpf']);
         $stmt->bindParam(':email', $_POST['email']);
         $stmt->bindParam(':data_nascimento', $_POST['data_nascimento']);
-
-        // Executar a consulta
         $stmt->execute();
-        }
+    }
 
     public static function where($column, $value)
     {
-        $pdo = getDbConnection();
-        $stmt = $pdo->prepare("SELECT * FROM contatos WHERE $column = ?");
+        $stmt = getDbConnection()->prepare("SELECT * FROM contatos WHERE $column = ?");
         $stmt->execute([$value]);
-        return $stmt->fetchAll();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
-        
+    public static function store()
+    {
+        $contato = new Contato();
+        $contato->nome_completo = $_POST['nome_completo'];
+        $contato->cpf = $_POST['cpf'];
+        $contato->email = $_POST['email'];
+        $contato->data_nascimento = $_POST['data_nascimento'];
+        $contato->save();
+        header('Location: /k13_teste');
+    }
+
+    public static function search()
+    {
+        $stmt = getDbConnection()->query("SELECT * FROM contatos WHERE nome_completo LIKE '%{$_POST['nome_contato']}%'");
+        $contatos = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $contato = new Contato();
+            $contato->id = $row['id'];
+            $contato->nome_completo = $row['nome_completo'];
+            $contato->cpf = $row['cpf'];
+            $contato->email = $row['email'];
+            $contato->data_nascimento = $row['data_nascimento'];
+            $contatos[] = $contato;
+        }
+        return $contatos;
     }
 }
